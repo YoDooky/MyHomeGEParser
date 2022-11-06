@@ -1,100 +1,109 @@
 import json
+from typing import Dict, List
+from sqlite3 import OperationalError
 import requests
 from bs4 import BeautifulSoup
-from collectData import DataCollect
-import config
-import os.path
-from console_progressbar import ProgressBar
+from collect_data import DataCollect
+
+from config import server_config
+from database.models.utils import dbcontrol
+from database.controllers import cities_controller
+from database.models.utils import format_data
+from config import bot_config
 
 
-def update_json_file(page_data, filename='data.json'):
-    new_data = {}
-    if not os.path.isfile(filename):  # create new file if file doesn't exist
-        with open(filename, 'w', encoding='utf-8') as file:
-            json.dump(page_data, file)
-    with open(filename, 'r', encoding='utf-8') as file:
-        file_data = json.load(file)
-        current_data = {}
-        for key, value in page_data.items():
-            if key in file_data:
-                break
-            current_data[key] = value
-        new_data = {**current_data, **file_data}  # add new data to start of the dict
-    if not current_data:
-        return 1
-    with open(filename, 'w', encoding='utf-8') as file:
-        json.dump(new_data, file)
+class PageData:
+    """Parse page data and write to DB"""
+
+    def __init__(self):
+        self.header = server_config.header
+
+    def get_cities(self) -> Dict:
+        """Get all cities and cities id dict"""
+        url = 'https://www.myhome.ge/en/search/getCities'
+        req = requests.post(url, headers=self.header)
+        src = req.text
+        src_dict = json.loads(src)
+        cities_dict = {}
+        for each in src_dict['subLocs']:
+            cities_dict[int(each['osm_id'])] = each['name']['en']
+        return cities_dict
+
+    def get_pages_amount(self, city: str) -> int:
+        """Returns city pages amount"""
+        url = server_config.get_url(city)
+        req = requests.get(url, headers=self.header)
+        src = req.text
+        soup = BeautifulSoup(src, 'lxml')
+        return int(soup.find('li', {'class': 'space-item-last'}).text)
+
+    def get_page_data(self, city: str, page_number: int) -> List:
+        """Returns only useful data"""
+        url = server_config.get_url(city, page_number)
+        req = requests.get(url, headers=self.header)
+        src = req.text
+        soup = BeautifulSoup(src, 'lxml')
+        card_container = soup.find_all('a', {'class': 'card-container'})
+        data_collect = DataCollect()
+        data = []
+        for each in card_container:
+            data.append(data_collect.get_card_data(each))
+        return data
 
 
-def run_full_scan():
-    """Runs full scan for selected city"""
+def remove_duplicate(city: str, ad_data: List[Dict]) -> bool:
+    """Removes element from list if it's id is already in DB"""
+    try:
+        city = format_data.mod_string(city)  # replace spaces with underscore
+        db_city_ids = dbcontrol.fetchall(city, ['id'])
+    except OperationalError:
+        return False
+    db_city_id_list = [each['id'] for each in db_city_ids]
+    result = False
+    for num, each in enumerate(ad_data):
+        if each['id'] in db_city_id_list:
+            del ad_data[num]
+            result = True
+    return result
 
 
-def get_cities_json():
-    """Save all cities to JSON"""
-    url = 'https://www.myhome.ge/en/search/getCities'
-    headers = config.header
-    req = requests.post(url, headers=headers)
-    src = req.text
-    with open('cities_raw.json', 'w', encoding='utf-8') as file:
-        file.write(src)
-    with open('cities_raw.json', encoding='utf-8') as file:  # test
-        python_src = json.load(file)
-    cities_list = [each['name']['en'] for each in python_src['subLocs']]
-    cities_json = json.dumps(cities_list)
-    with open('cities.json', 'w', encoding='utf-8') as file:
-        file.write(cities_json)
-
-
-def get_cities():
-    with open('cities.json', encoding='utf-8') as file:
-        cities_list = json.load(file)
-    return cities_list
-
-
-def get_pages_amount(city):
-    url = config.get_url(city)
-    header = config.header
-    req = requests.get(url, headers=header)
-    src = req.text
-    soup = BeautifulSoup(src, 'lxml')
-    return soup.find('li', {'class': 'space-item-last'}).text
-
-
-def get_page_src(city, page_number=1):
-    url = config.get_url(city, page_number)
-    header = config.header
-    req = requests.get(url, headers=header)
-    src = req.text
-    # with open('data.html', 'w', encoding='utf-8') as file:
-    #     file.write(src)
-    return src
-
-
-def get_page_data(src):
-    soup = BeautifulSoup(src, 'lxml')
-    card_container = soup.find_all('a', {'class': 'card-container'})
-    data_collect = DataCollect()
-    data = {}
-    for each in card_container:
-        card_data = data_collect.get_card_data(each)
-        data[card_data['id']] = card_data
-    return data
-
-
-def main():
-    city = get_cities()[46]  # test Kobuleti
-    filename = f'./data/{city}.json'
-    pages_amount = int(get_pages_amount(city))
-    pb = ProgressBar(total=pages_amount, prefix='Here', suffix='Now', decimals=0, length=50, fill='X', zfill='-')
-    for page in range(pages_amount, 0, -1):
-        src = get_page_src(city, page)
-        page_data = get_page_data(src)
-        if update_json_file(page_data, filename):
+def update_db_data(city: str, data_amount: int):
+    """Updates data in db if there is new data on page"""
+    page_data = PageData()
+    page_amount = page_data.get_pages_amount(city)
+    ad_amount = 0
+    for i in range(1, page_amount + 1):
+        ad_data = page_data.get_page_data(city, i)
+        duplicate_found = remove_duplicate(city, ad_data)  # remove duplicates to add only new data
+        cities_controller.db_write_page_data(city, ad_data)
+        ad_amount += len(ad_data)
+        if ad_amount >= min(100, data_amount) or duplicate_found:  # break cycle if there is same data in DB
             break
-        pb.print_progress_bar(pages_amount - page)
+
+
+def get_cities() -> List:
+    """Returns only cities array"""
+    city_data = dbcontrol.sort('cities', ['city'], 'city', order='ASC')
+    return [each['city'] for each in city_data]
+
+
+def get_demand_data(city: str, demand_data_part: int) -> List:
+    """Returns demand from telegram data"""
+    data_amount = bot_config.max_ad_amount
+    if demand_data_part == 1:  # refresh data from web page only on first iteration
+        # (because in DB it will be update after first iteration)
+        update_db_data(city, data_amount)
+    demand_data = cities_controller.db_get_cities_data(city, data_amount)
+    part_size = 5  # amount of ad per one part
+    return demand_data[demand_data_part * part_size - part_size:demand_data_part * part_size]
+
+
+def write_cities_to_db():
+    page_data = PageData()
+    cities = page_data.get_cities()
+    cities_controller.db_write_cities_data(cities)
 
 
 if __name__ == '__main__':
-    get_cities()
-    main()
+    # write_cities_to_db()
+    pass
