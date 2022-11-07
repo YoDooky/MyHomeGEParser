@@ -1,11 +1,11 @@
 import sqlite3
 from typing import Dict, List
-from config.server_config import db_path
+from config.server_config import DB_PATH
 from database.models import createdb
 from database.models.utils import format_data
 
 
-conn = sqlite3.connect(db_path)
+conn = sqlite3.connect(DB_PATH)
 cursor = conn.cursor()
 
 

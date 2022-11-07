@@ -2,8 +2,11 @@ import os
 from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
-token = os.getenv('TOKEN')
-chat_id = -731369581
+TOKEN = os.getenv('TOKEN')
+CHAT_ID = -731369581
 
-max_menu_items = 30  # maximum amount of items to be showed in menu
-max_ad_amount = 100  # maximum ad amount that woudl be load
+MAX_MENU_ITEMS = 30  # maximum amount of items to be showed in menu
+MAX_AD_AMOUNT = 100  # maximum ad amount that woudl be load
+
+WEBHOOK_PATH = f"/main/{TOKEN}"
+WEBHOOK_URL = "https://464b-178-134-173-91.eu.ngrok.io" + WEBHOOK_PATH

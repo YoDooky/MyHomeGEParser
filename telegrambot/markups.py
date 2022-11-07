@@ -7,7 +7,7 @@ class CityMenu:
     def __init__(self, cities_list: List):
         self.cities_list = cities_list
         self.cities_counter = 0
-        self.max_elements = bot_config.max_menu_items  # max elements count in inline menu
+        self.max_elements = bot_config.MAX_MENU_ITEMS  # max elements count in inline menu
 
     def get_select_menu(self, scroll: str = None):
         """Cities menu with scroll (on buttons)"""

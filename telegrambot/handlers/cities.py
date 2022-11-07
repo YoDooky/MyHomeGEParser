@@ -1,11 +1,10 @@
 import main
 from telegrambot import markups
+from telegrambot import aux_functions
 
-from typing import List, Dict
 from aiogram import Dispatcher, types
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
-from aiogram.utils.markdown import hbold, hlink
 
 
 class CitiesHandler:
@@ -48,7 +47,7 @@ class CitiesHandler:
         if not useful_data:
             await call.message.edit_text(text=f'Не найдено объявлений в городе "{user_data.get("choosen_city")}"')
             await state.finish()
-        await send_ad_to_chat(call, useful_data)
+        await aux_functions.send_ad_to_chat(call, useful_data)
         keyboard = markups.get_load_more_menu()
         await call.message.answer(text='Выберите действие: ',
                                   reply_markup=keyboard)
@@ -65,7 +64,7 @@ class CitiesHandler:
         if not useful_data:
             await call.message.edit_text(text=f'Больше не найдено объявлений')
             await state.finish()
-        await send_ad_to_chat(call, useful_data)
+        await aux_functions.send_ad_to_chat(call, useful_data)
         await call.message.answer(text='Выберите действие: ',
                                   reply_markup=keyboard)
 
@@ -80,29 +79,29 @@ class CitiesHandler:
         dp.register_callback_query_handler(self.load_more, text='load_more')
 
 
-async def send_ad_to_chat(call: types.CallbackQuery, useful_data: List):
-    for item in useful_data:
-        media = get_ad_form(item)
-        await call.message.answer_media_group(media=media)
-
-
-def get_ad_form(item: Dict):
-    """Send ad to chat"""
-    card = f'{hlink(item.get("title"), item.get("url"))}\n' \
-           f'{hbold("💵 цена: ")} {item.get("price")} $\n' \
-           f'{hbold("🇬🇪 адрес: ")} {item.get("address")}\n' \
-           f'{hbold("⏳ дата объявления: ")} {item.get("date")}'
-    media = types.MediaGroup()
-    img_list = parse_images(item.get('img_url'))
-    for num, each in enumerate(img_list):
-        if num > 9:
-            break
-        if not num:  # add caption to all media (works only if add caption on first img)
-            media.attach_photo(types.InputMediaPhoto(each, caption=card))
-            continue
-        media.attach_photo(types.InputMediaPhoto(each))
-    return media
-
-
-def parse_images(img_string: str) -> List:
-    return img_string.split(', ')
+# async def send_ad_to_chat(call: types.CallbackQuery, useful_data: List):
+#     for item in useful_data:
+#         media = get_ad_form(item)
+#         await call.message.answer_media_group(media=media)
+#
+#
+# def get_ad_form(item: Dict):
+#     """Send ad to chat"""
+#     card = f'{hlink(item.get("title"), item.get("url"))}\n' \
+#            f'{hbold("💵 цена: ")} {item.get("price")} $\n' \
+#            f'{hbold("🇬🇪 адрес: ")} {item.get("address")}\n' \
+#            f'{hbold("⏳ дата объявления: ")} {item.get("date")}'
+#     media = types.MediaGroup()
+#     img_list = parse_images(item.get('img_url'))
+#     for num, each in enumerate(img_list):
+#         if num > 9:
+#             break
+#         if not num:  # add caption to all media (works only if add caption on first img)
+#             media.attach_photo(types.InputMediaPhoto(each, caption=card))
+#             continue
+#         media.attach_photo(types.InputMediaPhoto(each))
+#     return media
+#
+#
+# def parse_images(img_string: str) -> List:
+#     return img_string.split(', ')

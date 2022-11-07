@@ -16,7 +16,7 @@ class PageData:
     """Parse page data and write to DB"""
 
     def __init__(self):
-        self.header = server_config.header
+        self.header = server_config.HEADER
 
     def get_cities(self) -> Dict:
         """Get all cities and cities id dict"""
@@ -89,7 +89,7 @@ def get_cities() -> List:
 
 def get_demand_data(city: str, demand_data_part: int) -> List:
     """Returns demand from telegram data"""
-    data_amount = bot_config.max_ad_amount
+    data_amount = bot_config.MAX_AD_AMOUNT
     if demand_data_part == 1:  # refresh data from web page only on first iteration
         # (because in DB it will be update after first iteration)
         update_db_data(city, data_amount)

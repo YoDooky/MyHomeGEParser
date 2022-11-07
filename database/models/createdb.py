@@ -1,11 +1,11 @@
 import sqlite3
-from config.server_config import db_path
+from config.server_config import DB_PATH
 from database.models.utils import format_data
 
 
 class DbCreator:
     def __init__(self):
-        self.conn = sqlite3.connect(db_path)
+        self.conn = sqlite3.connect(DB_PATH)
         self.cursor = self.conn.cursor()
 
     def __create_user_catalog(self):

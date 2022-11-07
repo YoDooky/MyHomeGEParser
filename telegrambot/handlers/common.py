@@ -2,6 +2,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from telegrambot import markups
 from database.models.utils import dbcontrol
+from typing import Dict
 
 
 async def start(message: types.Message, state: FSMContext):
@@ -17,7 +18,7 @@ def register_handlers(dp: Dispatcher):
     dp.register_message_handler(start, commands="start", state='*')
 
 
-def collect_user_data(user_data):
+def collect_user_data(user_data: Dict):
     """Colelcts user data from telegram chat"""
     data = {
         'id': user_data['id'],

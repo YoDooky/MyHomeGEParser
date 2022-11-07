@@ -27,7 +27,7 @@ def db_write_cities_data(cities: Dict):
         dbcontrol.insert_db('cities', data)
 
 
-def db_get_cities_data(city: str, data_amount: int) -> List:
+def db_get_cities_data(city: str, data_amount: int) -> List[Dict]:
     """Get demanded city data"""
     data = dbcontrol.sort(city, [
         'id',
