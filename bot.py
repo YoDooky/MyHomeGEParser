@@ -23,11 +23,11 @@ def init_handlers(dp):
     city_handler.register_handlers(dp)
 
 
-async def set_commands(bot: Bot):
+def set_commands(bot: Bot):
     commands = [
         BotCommand(command="/start", description="Рестарт бота"),
     ]
-    await bot.set_my_commands(commands)
+    bot.set_my_commands(commands)
 
 
 def set_logging(dp):
