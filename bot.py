@@ -8,6 +8,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.types.bot_command import BotCommand
 import logging
+import asyncio
 
 
 class BotInit:
@@ -23,11 +24,11 @@ def init_handlers(dp):
     city_handler.register_handlers(dp)
 
 
-def set_commands(bot: Bot):
+async def set_commands(bot: Bot):
     commands = [
         BotCommand(command="/start", description="Рестарт бота"),
     ]
-    bot.set_my_commands(commands)
+    await bot.set_my_commands(commands)
 
 
 def set_logging(dp):
@@ -35,14 +36,10 @@ def set_logging(dp):
     dp.middleware.setup(LoggingMiddleware())
 
 
-def main():
-    set_logging(bot_init.dp)
-    init_handlers(bot_init.dp)
-    set_commands(bot_init.bot)
-
-
 bot_init = BotInit()
-main()
-# asyncio.run(main())
+set_logging(bot_init.dp)
+init_handlers(bot_init.dp)
+set_commands(bot_init.bot)
+
 app = FastAPI()
 webhook_api.init_api(bot_init.bot, bot_init.dp, app)
