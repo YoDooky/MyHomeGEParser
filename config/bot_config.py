@@ -13,4 +13,3 @@ WEBHOOK_PATH = f"/main/{TOKEN}"
 APP_URL = os.getenv('APP_URL')
 WEBHOOK_URL = APP_URL + WEBHOOK_PATH
 BOT_URL = os.getenv('BOT_URL')
-BOT_PORT = int(os.getenv('BOT_PORT'))
