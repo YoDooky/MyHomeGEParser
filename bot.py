@@ -7,7 +7,6 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.types.bot_command import BotCommand
-import asyncio
 import logging
 
 
@@ -42,7 +41,6 @@ def main():
     set_commands(bot_init.bot)
 
 
-# if __name__ == '__main__':
 bot_init = BotInit()
 main()
 # asyncio.run(main())
