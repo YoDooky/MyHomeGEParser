@@ -1,6 +1,7 @@
 from config.bot_config import TOKEN
 from telegrambot.handlers import cities, common
 from telegrambot import webhook_api
+from fastapi import FastAPI
 
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -35,13 +36,15 @@ def set_logging(dp):
     dp.middleware.setup(LoggingMiddleware())
 
 
-async def main():
+def main():
     set_logging(bot_init.dp)
     init_handlers(bot_init.dp)
-    await set_commands(bot_init.bot)
+    set_commands(bot_init.bot)
 
 
-if __name__ == '__main__':
-    bot_init = BotInit()
-    asyncio.run(main())
-    webhook_api.init_api(bot_init.bot, bot_init.dp)
+# if __name__ == '__main__':
+bot_init = BotInit()
+main()
+# asyncio.run(main())
+app = FastAPI()
+webhook_api.init_api(bot_init.bot, bot_init.dp, app)

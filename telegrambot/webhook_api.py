@@ -7,8 +7,8 @@ from config.bot_config import BOT_URL
 import uvicorn
 
 
-def init_api(bot, dp):
-    app = FastAPI()
+def init_api(bot, dp, app):
+    # app = FastAPI()
 
     @app.on_event("startup")
     async def on_startup():
@@ -29,4 +29,4 @@ def init_api(bot, dp):
     async def on_shutdown():
         await bot.get_session()
 
-    uvicorn.run(app, host=BOT_URL, port=int(os.getenv("PORT", 5010)))
+    # uvicorn.run(app, host=BOT_URL, port=int(os.getenv("PORT", 5010)))
