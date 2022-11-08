@@ -1,6 +1,6 @@
 from config.bot_config import TOKEN
-from handlers import cities, common
-import webhook_api
+from telegrambot.handlers import cities, common
+from telegrambot import webhook_api
 
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage

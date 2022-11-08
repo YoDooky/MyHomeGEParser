@@ -3,7 +3,7 @@ from typing import Dict, List
 from sqlite3 import OperationalError
 import requests
 from bs4 import BeautifulSoup
-from collect_data import DataCollect
+from parsing.collect_data import DataCollect
 
 from config import parser_config
 from database.models.utils import dbcontrol

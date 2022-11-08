@@ -1,4 +1,4 @@
-import main
+from parsing import parse_page
 from telegrambot import markups
 from telegrambot import aux_functions
 
@@ -10,7 +10,7 @@ from aiogram.dispatcher import FSMContext
 class CitiesHandler:
     """Handlers for city selection"""
     def __init__(self):
-        self.available_cities = main.get_cities()
+        self.available_cities = parse_page.get_cities()
         self.menu = markups.CityMenu(self.available_cities)
 
     async def city_start(self, call: types.CallbackQuery, state: FSMContext):
@@ -43,8 +43,8 @@ class CitiesHandler:
         user_data = await state.get_data()
 
         await call.message.edit_text(text='Идет загрузка...')
-        useful_data = main.get_demand_data(city=user_data.get('choosen_city'),
-                                           demand_data_part=int(user_data.get("data_part")))
+        useful_data = parse_page.get_demand_data(city=user_data.get('choosen_city'),
+                                                 demand_data_part=int(user_data.get("data_part")))
         if not useful_data:
             await call.message.edit_text(text=f'Не найдено объявлений в городе "{user_data.get("choosen_city")}"')
             await state.finish()
@@ -59,8 +59,8 @@ class CitiesHandler:
         await state.update_data(data_part=str(int(user_data.get("data_part")) + 1))
         user_data = await state.get_data()
         await call.message.answer(text='Идет загрузка...')
-        useful_data = main.get_demand_data(city=user_data.get('choosen_city'),
-                                           demand_data_part=int(user_data.get("data_part")))
+        useful_data = parse_page.get_demand_data(city=user_data.get('choosen_city'),
+                                                 demand_data_part=int(user_data.get("data_part")))
         keyboard = markups.get_load_more_menu()
         if not useful_data:
             await call.message.edit_text(text=f'Больше не найдено объявлений')
