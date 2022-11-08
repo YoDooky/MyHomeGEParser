@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from aiogram import types, Dispatcher, Bot
 from config.bot_config import WEBHOOK_PATH
 from config.bot_config import WEBHOOK_URL
+from config.bot_config import BOT_PORT
 import uvicorn
 
 
@@ -27,4 +28,4 @@ def init_api(bot, dp):
     async def on_shutdown():
         await bot.session.close()
 
-    uvicorn.run(app, host="127.0.0.1", port=5000)
+    uvicorn.run(app, host="127.0.0.1", port=BOT_PORT)

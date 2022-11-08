@@ -77,6 +77,7 @@ class DataCollect:
         """Gets home price"""
         try:
             string_object = " ".join(item.find('b', {'class': 'item-price-usd'}).text.split())
+            string_object = ''.join(string_object.split(','))
             return parse_numb(string_object=string_object)
         except AttributeError:
             return "no info"

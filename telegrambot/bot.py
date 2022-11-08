@@ -11,6 +11,7 @@ import logging
 
 
 class BotInit:
+    """Bit initialization"""
     def __init__(self):
         self.bot = Bot(token=TOKEN, parse_mode=types.ParseMode.HTML)
         self.dp = Dispatcher(self.bot, storage=MemoryStorage())

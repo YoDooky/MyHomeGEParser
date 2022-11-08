@@ -5,18 +5,18 @@ import requests
 from bs4 import BeautifulSoup
 from collect_data import DataCollect
 
-from config import server_config
+from config import parser_config
 from database.models.utils import dbcontrol
 from database.controllers import cities_controller
 from database.models.utils import format_data
 from config import bot_config
+from database.models import createdb
 
 
 class PageData:
     """Parse page data and write to DB"""
-
     def __init__(self):
-        self.header = server_config.HEADER
+        self.header = parser_config.HEADER
 
     def get_cities(self) -> Dict:
         """Get all cities and cities id dict"""
@@ -31,7 +31,7 @@ class PageData:
 
     def get_pages_amount(self, city: str) -> int:
         """Returns city pages amount"""
-        url = server_config.get_url(city)
+        url = parser_config.get_url(city)
         req = requests.get(url, headers=self.header)
         src = req.text
         soup = BeautifulSoup(src, 'lxml')
@@ -39,7 +39,7 @@ class PageData:
 
     def get_page_data(self, city: str, page_number: int) -> List:
         """Returns only useful data"""
-        url = server_config.get_url(city, page_number)
+        url = parser_config.get_url(city, page_number)
         req = requests.get(url, headers=self.header)
         src = req.text
         soup = BeautifulSoup(src, 'lxml')
@@ -74,6 +74,9 @@ def update_db_data(city: str, data_amount: int):
     ad_amount = 0
     for i in range(1, page_amount + 1):
         ad_data = page_data.get_page_data(city, i)
+        if not dbcontrol.check_table_exist(city):
+            database = createdb.DbCreator()
+            database.create_city_db(city)
         duplicate_found = remove_duplicate(city, ad_data)  # remove duplicates to add only new data
         cities_controller.db_write_page_data(city, ad_data)
         ad_amount += len(ad_data)
@@ -81,13 +84,22 @@ def update_db_data(city: str, data_amount: int):
             break
 
 
-def get_cities() -> List:
+def get_cities() -> List[Dict]:
     """Returns only cities array"""
+    if not dbcontrol.check_table_empty('cities'):
+        write_cities_to_db()
     city_data = dbcontrol.sort('cities', ['city'], 'city', order='ASC')
     return [each['city'] for each in city_data]
 
 
-def get_demand_data(city: str, demand_data_part: int) -> List:
+def write_cities_to_db():
+    """Write cities names and id to DB"""
+    page_data = PageData()
+    cities = page_data.get_cities()
+    cities_controller.db_write_cities_data(cities)
+
+
+def get_demand_data(city: str, demand_data_part: int) -> List[Dict]:
     """Returns demand from telegram data"""
     data_amount = bot_config.MAX_AD_AMOUNT
     if demand_data_part == 1:  # refresh data from web page only on first iteration
@@ -96,14 +108,3 @@ def get_demand_data(city: str, demand_data_part: int) -> List:
     demand_data = cities_controller.db_get_cities_data(city, data_amount)
     part_size = 5  # amount of ad per one part
     return demand_data[demand_data_part * part_size - part_size:demand_data_part * part_size]
-
-
-def write_cities_to_db():
-    page_data = PageData()
-    cities = page_data.get_cities()
-    cities_controller.db_write_cities_data(cities)
-
-
-if __name__ == '__main__':
-    # write_cities_to_db()
-    pass
