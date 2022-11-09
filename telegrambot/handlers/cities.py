@@ -37,8 +37,7 @@ class CitiesHandler:
         await call.message.edit_text(text=f'Выбранный город "{selected_city}"',
                                      reply_markup=keyboard)
 
-    @staticmethod
-    async def load_ad_data(call: types.CallbackQuery, state: FSMContext):
+    async def load_ad_data(self, call: types.CallbackQuery, state: FSMContext):
         await state.update_data(data_part='1')
         user_data = await state.get_data()
 
@@ -46,8 +45,12 @@ class CitiesHandler:
         useful_data = parse_page.get_demand_data(city=user_data.get('choosen_city'),
                                                  demand_data_part=int(user_data.get("data_part")))
         if not useful_data:
-            await call.message.edit_text(text=f'Не найдено объявлений в городе "{user_data.get("choosen_city")}"')
+            keyboard = self.menu.get_select_menu()
+            await call.message.edit_text(text=f'Не найдено объявлений в городе "{user_data.get("choosen_city")}"\n'
+                                              f'Выберите другой город:',
+                                         reply_markup=keyboard)
             await state.finish()
+            return
         await aux_functions.send_ad_to_chat(call, useful_data)
         keyboard = markups.get_load_more_menu()
         await call.message.answer(text='Выберите действие: ',

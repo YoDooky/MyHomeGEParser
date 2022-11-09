@@ -72,11 +72,12 @@ def update_db_data(city: str, data_amount: int):
     page_data = PageData()
     page_amount = page_data.get_pages_amount(city)
     ad_amount = 0
+    if not dbcontrol.check_table_exist(city):
+        database = createdb.DbCreator()
+        database.create_city_db(city)
+
     for i in range(1, page_amount + 1):
         ad_data = page_data.get_page_data(city, i)
-        if not dbcontrol.check_table_exist(city):
-            database = createdb.DbCreator()
-            database.create_city_db(city)
         duplicate_found = remove_duplicate(city, ad_data)  # remove duplicates to add only new data
         cities_controller.db_write_page_data(city, ad_data)
         ad_amount += len(ad_data)

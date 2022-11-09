@@ -7,12 +7,14 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.types.bot_command import BotCommand
-import logging
 import asyncio
+import logging
+import uvicorn
 
 
 class BotInit:
-    """Bit initialization"""
+    """Bot initialization"""
+
     def __init__(self):
         self.bot = Bot(token=TOKEN, parse_mode=types.ParseMode.HTML)
         self.dp = Dispatcher(self.bot, storage=MemoryStorage())
@@ -36,10 +38,15 @@ def set_logging(dp):
     dp.middleware.setup(LoggingMiddleware())
 
 
-bot_init = BotInit()
-set_logging(bot_init.dp)
-init_handlers(bot_init.dp)
-set_commands(bot_init.bot)
+async def main():
+    set_logging(bot_init.dp)
+    init_handlers(bot_init.dp)
+    await set_commands(bot_init.bot)
 
-app = FastAPI()
-webhook_api.init_api(bot_init.bot, bot_init.dp, app)
+
+if __name__ == '__main__':
+    bot_init = BotInit()
+    asyncio.run(main())
+    app = FastAPI()
+    webhook_api.init_api(bot_init.bot, bot_init.dp, app)
+    uvicorn.run(app, host='0.0.0.0', port=5010)
