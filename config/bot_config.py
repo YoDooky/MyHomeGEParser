@@ -12,4 +12,4 @@ MAX_AD_AMOUNT = 100  # maximum ad amount that would be load
 WEBHOOK_PATH = f"/main/{TOKEN}"
 APP_URL = os.getenv('APP_URL')
 WEBHOOK_URL = APP_URL + WEBHOOK_PATH
-BOT_URL = os.getenv('BOT_URL')
+# BOT_URL = os.getenv('BOT_URL')

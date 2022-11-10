@@ -57,8 +57,10 @@ class DbCreator:
             dbname=db_config.DB_NAME,
             user=db_config.USER,
             password=db_config.PASSWORD,
-            port=db_config.DB_PORT
+            port=db_config.DB_PORT,
+
         )
+        # self.conn.set_client_encoding('UTF8')
         self.cursor = self.conn.cursor()
 
     def __create_user_catalog(self):
